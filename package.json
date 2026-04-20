@@ -1,24 +1,26 @@
 {
-  "name": "cheque-print-app",
+  "name": "next-fresh-template-codex",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint",
-    "seed": "node scripts/seed-cheques.mjs",
-    "seed:cheques": "node scripts/seed-cheques.mjs",
-    "seed:templates": "node scripts/seed-templates.mjs"
+    "lint": "eslint"
   },
   "dependencies": {
+    "fabric": "^7.3.1",
     "mongoose": "^9.4.1",
+    "multer": "^2.1.1",
     "next": "16.2.4",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "sharp": "^0.34.5",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/multer": "^2.1.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

@@ -9,17 +9,14 @@ declare global {
   var mongooseCache: MongooseCache | undefined;
 }
 
-const cached: MongooseCache = global.mongooseCache ?? { conn: null, promise: null };
+const cached = global.mongooseCache || { conn: null, promise: null };
 
-if (!global.mongooseCache) {
-  global.mongooseCache = cached;
-}
+global.mongooseCache = cached;
 
 export async function connectToDatabase() {
-  const mongodbUri = process.env.MONGODB_URI;
-
-  if (!mongodbUri) {
-    throw new Error("Please define the MONGODB_URI environment variable.");
+  const MONGODB_URI = process.env.MONGODB_URI;
+  if (!MONGODB_URI) {
+    throw new Error("Please define MONGODB_URI in your environment.");
   }
 
   if (cached.conn) {
@@ -27,7 +24,7 @@ export async function connectToDatabase() {
   }
 
   if (!cached.promise) {
-    cached.promise = mongoose.connect(mongodbUri);
+    cached.promise = mongoose.connect(MONGODB_URI as string);
   }
 
   cached.conn = await cached.promise;

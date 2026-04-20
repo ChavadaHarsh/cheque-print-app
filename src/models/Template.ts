@@ -1,76 +1,36 @@
-import mongoose, { Schema, type Model, type Types } from "mongoose";
+import { model, models, Schema, type InferSchemaType } from "mongoose";
 
-type Position = {
-  x: number;
-  y: number;
-};
-
-type PageSize = {
-  width: number;
-  height: number;
-};
-
-export interface ITemplate {
-  _id: Types.ObjectId;
-  bankName: string;
-  variant?: string;
-  page: PageSize;
-  fields: {
-    payee: Position;
-    amountNumber: Position;
-    amountWords: Position;
-    date: Position;
-    signature: Position;
-  };
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-const positionSchema = new Schema<Position>(
+const templateFieldSchema = new Schema(
   {
-    x: { type: Number, required: true },
-    y: { type: Number, required: true },
-  },
-  { _id: false },
-);
-
-const pageSchema = new Schema<PageSize>(
-  {
-    width: { type: Number, required: true },
-    height: { type: Number, required: true },
-  },
-  { _id: false },
-);
-
-const templateSchema = new Schema<ITemplate>(
-  {
-    bankName: {
+    key: {
       type: String,
-      required: [true, "bankName is required."],
-      trim: true,
-    },
-    variant: {
-      type: String,
-      trim: true,
-    },
-    page: {
-      type: pageSchema,
+      enum: ["payee", "amountNumber", "amountWords", "date"],
       required: true,
     },
-    fields: {
-      payee: { type: positionSchema, required: true },
-      amountNumber: { type: positionSchema, required: true },
-      amountWords: { type: positionSchema, required: true },
-      date: { type: positionSchema, required: true },
-      signature: { type: positionSchema, required: true },
-    },
+    label: { type: String, required: true },
+    x: { type: Number, required: true },
+    y: { type: Number, required: true },
+    fontSize: { type: Number, default: 24 },
+    width: { type: Number, default: 260 },
+    color: { type: String, default: "#111111" },
   },
-  { timestamps: true },
+  { _id: false }
 );
 
-const Template: Model<ITemplate> =
-  (mongoose.models.Template as Model<ITemplate>) ||
-  mongoose.model<ITemplate>("Template", templateSchema);
+const templateSchema = new Schema(
+  {
+    bankId: { type: Schema.Types.ObjectId, ref: "Bank", required: true, index: true },
+    bankName: { type: String, required: true },
+    imageUrl: { type: String, required: true },
+    widthMM: { type: Number, default: 202 },
+    heightMM: { type: Number, default: 92 },
+    baseWidth: { type: Number, default: 1000 },
+    baseHeight: { type: Number, default: 450 },
+    fields: { type: [templateFieldSchema], default: [] },
+  },
+  { timestamps: true }
+);
 
-export default Template;
+export type TemplateDocument = InferSchemaType<typeof templateSchema> & { _id: string };
 
+export const TemplateModel = models.Template || model("Template", templateSchema);
