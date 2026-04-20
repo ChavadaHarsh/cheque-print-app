@@ -6,18 +6,19 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "seed": "node scripts/seed-cheques.mjs",
+    "seed:cheques": "node scripts/seed-cheques.mjs",
+    "seed:templates": "node scripts/seed-templates.mjs"
   },
   "dependencies": {
-    "better-sqlite3": "^12.9.0",
+    "mongoose": "^9.4.1",
     "next": "16.2.4",
     "react": "19.2.4",
-    "react-dom": "19.2.4",
-    "react-icons": "^5.6.0"
+    "react-dom": "19.2.4"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
-    "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
