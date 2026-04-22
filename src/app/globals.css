@@ -32,6 +32,21 @@ body {
     display: none !important;
   }
 
+  body * {
+    visibility: hidden !important;
+  }
+
+  #cheque-print-root,
+  #cheque-print-root * {
+    visibility: visible !important;
+  }
+
+  #cheque-print-root {
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+
   .print-sheet {
     width: 202mm !important;
     height: 92mm !important;

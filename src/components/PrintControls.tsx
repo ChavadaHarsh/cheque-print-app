@@ -6,9 +6,10 @@ type Props = {
   onOffsetXChange: (value: number) => void;
   onOffsetYChange: (value: number) => void;
   onPrint: () => void;
+  onCancel: () => void;
 };
 
-export function PrintControls({ offsetX, offsetY, onOffsetXChange, onOffsetYChange, onPrint }: Props) {
+export function PrintControls({ offsetX, offsetY, onOffsetXChange, onOffsetYChange, onPrint, onCancel }: Props) {
   return (
     <div className="no-print grid gap-4 rounded-xl border border-slate-200 bg-white p-4 sm:grid-cols-2">
       <label className="text-sm">
@@ -32,13 +33,22 @@ export function PrintControls({ offsetX, offsetY, onOffsetXChange, onOffsetYChan
         />
       </label>
 
-      <button
-        type="button"
-        onClick={onPrint}
-        className="sm:col-span-2 rounded-lg bg-slate-900 px-4 py-2 font-semibold text-white hover:bg-slate-800"
-      >
-        Print
-      </button>
+      <div className="sm:col-span-2 flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={onPrint}
+          className="rounded-lg bg-slate-900 px-4 py-2 font-semibold text-white hover:bg-slate-800"
+        >
+          Print
+        </button>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="rounded-lg border border-slate-300 px-4 py-2 font-semibold text-slate-700 hover:bg-slate-50"
+        >
+          Cancel
+        </button>
+      </div>
     </div>
   );
 }

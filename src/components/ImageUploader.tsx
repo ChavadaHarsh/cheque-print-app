@@ -21,7 +21,14 @@ export function ImageUploader({ bankId, bankName, onUploaded }: Props) {
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    if (!file || !bankId || !bankName) return;
+    if (!bankId || !bankName) {
+      setError("Please select a bank first.");
+      return;
+    }
+    if (!file) {
+      setError("Please choose an image to upload.");
+      return;
+    }
 
     setIsUploading(true);
     setError("");
@@ -59,12 +66,15 @@ export function ImageUploader({ bankId, bankName, onUploaded }: Props) {
       <input
         type="file"
         accept="image/*"
-        onChange={(event) => setFile(event.target.files?.[0] || null)}
+        onChange={(event) => {
+          setFile(event.target.files?.[0] || null);
+          setError("");
+        }}
         className="w-full rounded-lg border border-slate-300 bg-white p-2"
       />
       <button
         type="submit"
-        disabled={isUploading || !file || !bankId}
+        disabled={isUploading || !file}
         className="rounded-lg bg-slate-900 px-4 py-2 font-semibold text-white hover:bg-slate-800 disabled:opacity-60"
       >
         {isUploading ? "Uploading..." : "Upload Image"}

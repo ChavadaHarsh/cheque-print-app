@@ -1,14 +1,26 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 
 import { ChequePreview } from "@/components/ChequePreview";
 import { PrintControls } from "@/components/PrintControls";
 import type { Cheque, Template } from "@/lib/types";
 
+const parseJsonSafe = async <T,>(response: Response): Promise<T | null> => {
+  const text = await response.text();
+  if (!text) return null;
+
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    return null;
+  }
+};
+
 function PrintPageContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const templateId = searchParams?.get("templateId") || "";
   const chequeId = searchParams?.get("chequeId") || "";
@@ -27,13 +39,14 @@ function PrintPageContent() {
         fetch(`/api/cheques?id=${chequeId}`, { cache: "no-store" }),
       ]);
 
-      const templateJson = await templateRes.json();
-      const chequeJson = await chequeRes.json();
+      const [templateJson, chequeJson] = await Promise.all([
+        parseJsonSafe<{ template?: Template }>(templateRes),
+        parseJsonSafe<{ cheque?: Cheque }>(chequeRes),
+      ]);
 
-      if (templateRes.ok) setTemplate(templateJson.template as Template);
-      if (chequeRes.ok) setCheque(chequeJson.cheque as Cheque);
+      if (templateRes.ok && templateJson?.template) setTemplate(templateJson.template);
+      if (chequeRes.ok && chequeJson?.cheque) setCheque(chequeJson.cheque);
     };
-
     load();
   }, [chequeId, templateId]);
 
@@ -56,12 +69,14 @@ function PrintPageContent() {
         onOffsetXChange={setOffsetX}
         onOffsetYChange={setOffsetY}
         onPrint={() => window.print()}
+        onCancel={() => router.back()}
       />
 
       <div className="overflow-auto rounded-xl border border-slate-200 bg-white p-4">
         <ChequePreview
           template={template}
           printable
+          showBackground={false}
           offsetXMM={offsetX}
           offsetYMM={offsetY}
           values={{
@@ -69,6 +84,8 @@ function PrintPageContent() {
             amountNumber: Number(cheque.amount).toLocaleString("en-IN"),
             amountWords: cheque.amountWords,
             date: cheque.date,
+            issuerName: cheque.issuerName || template.issuerName || "",
+            issuerPosition: cheque.issuerPosition || template.issuerPosition || "",
           }}
         />
       </div>
@@ -83,4 +100,3 @@ export default function PrintPage() {
     </Suspense>
   );
 }
-

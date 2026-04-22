@@ -22,6 +22,9 @@ function EditorPageContent() {
   const [imageUrl, setImageUrl] = useState(imageUrlFromQuery);
   const [bankId, setBankId] = useState(bankIdFromQuery);
   const [bankName, setBankName] = useState(bankNameFromQuery);
+  const [templateName, setTemplateName] = useState(bankNameFromQuery ? `${bankNameFromQuery} Template` : "");
+  const [issuerName, setIssuerName] = useState("");
+  const [issuerPosition, setIssuerPosition] = useState("");
   const [fields, setFields] = useState<TemplateField[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
@@ -40,6 +43,9 @@ function EditorPageContent() {
       setImageUrl(template.imageUrl);
       setBankId(template.bankId);
       setBankName(template.bankName);
+      setTemplateName(template.templateName || `${template.bankName} Template`);
+      setIssuerName(template.issuerName || "");
+      setIssuerPosition(template.issuerPosition || "");
       setFields(template.fields);
     };
 
@@ -47,8 +53,13 @@ function EditorPageContent() {
   }, [templateId]);
 
   const canSave = useMemo(() => {
-    return Boolean(bankId && bankName && imageUrl && fields.length > 0);
-  }, [bankId, bankName, imageUrl, fields.length]);
+    return Boolean(bankId && bankName && imageUrl && templateName.trim() && fields.length > 0);
+  }, [bankId, bankName, imageUrl, templateName, fields.length]);
+
+  const findPosition = (key: "payee" | "amountNumber" | "date") => {
+    const item = fields.find((field) => field.key === key);
+    return item ? { x: item.x, y: item.y } : { x: 0, y: 0 };
+  };
 
   const handleSaveTemplate = async () => {
     if (!canSave) return;
@@ -57,28 +68,40 @@ function EditorPageContent() {
     setError("");
 
     try {
-      const response = await fetch("/api/templates", {
-        method: "POST",
+      const payload = {
+        templateName: templateName.trim(),
+        bankId,
+        bankName,
+        issuerName: issuerName.trim(),
+        issuerPosition: issuerPosition.trim(),
+        imageUrl,
+        widthMM: 202,
+        heightMM: 92,
+        baseWidth: DEFAULT_BASE_WIDTH,
+        baseHeight: DEFAULT_BASE_HEIGHT,
+        dateFieldPosition: findPosition("date"),
+        amountPosition: findPosition("amountNumber"),
+        payeePosition: findPosition("payee"),
+        signaturePosition: { x: DEFAULT_BASE_WIDTH * 0.72, y: DEFAULT_BASE_HEIGHT * 0.75 },
+        alignment: "left" as const,
+        font: { family: "Arial", size: 24 },
+        margins: { top: 0, right: 0, bottom: 0, left: 0 },
+        fields,
+      };
+
+      const response = await fetch(templateId ? `/api/templates/${templateId}` : "/api/templates", {
+        method: templateId ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          bankId,
-          bankName,
-          imageUrl,
-          widthMM: 202,
-          heightMM: 92,
-          baseWidth: DEFAULT_BASE_WIDTH,
-          baseHeight: DEFAULT_BASE_HEIGHT,
-          fields,
-        }),
+        body: JSON.stringify(payload),
       });
 
-      const payload = await response.json();
+      const result = await response.json();
       if (!response.ok) {
-        setError(payload.error || "Failed to save template.");
+        setError(result.error || "Failed to save template.");
         return;
       }
 
-      router.push(`/create?templateId=${payload.template._id}`);
+      router.push(`/create?templateId=${result.template._id}`);
     } catch {
       setError("Failed to save template.");
     } finally {
@@ -114,10 +137,37 @@ function EditorPageContent() {
             onClick={handleSaveTemplate}
             className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-60"
           >
-            {isSaving ? "Saving..." : "Save Template"}
+            {isSaving ? "Saving..." : templateId ? "Update Template" : "Save Template"}
           </button>
         </div>
       </header>
+
+      <section className="grid gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:grid-cols-3">
+        <label className="text-sm">
+          <span className="mb-1 block font-medium text-slate-700">Template Name</span>
+          <input
+            value={templateName}
+            onChange={(event) => setTemplateName(event.target.value)}
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 outline-none ring-indigo-200 focus:ring"
+          />
+        </label>
+        <label className="text-sm">
+          <span className="mb-1 block font-medium text-slate-700">Issuer Name (default)</span>
+          <input
+            value={issuerName}
+            onChange={(event) => setIssuerName(event.target.value)}
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 outline-none ring-indigo-200 focus:ring"
+          />
+        </label>
+        <label className="text-sm">
+          <span className="mb-1 block font-medium text-slate-700">Issuer Position (default)</span>
+          <input
+            value={issuerPosition}
+            onChange={(event) => setIssuerPosition(event.target.value)}
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 outline-none ring-indigo-200 focus:ring"
+          />
+        </label>
+      </section>
 
       <TemplateEditorCanvas
         imageUrl={imageUrl}
@@ -139,4 +189,3 @@ export default function EditorPage() {
     </Suspense>
   );
 }
-

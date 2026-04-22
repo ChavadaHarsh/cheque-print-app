@@ -84,6 +84,7 @@ export function TemplateEditorCanvas({
     const canvas = new Canvas(canvasElementRef.current, {
       selection: true,
       preserveObjectStacking: true,
+      enableRetinaScaling: false,
     });
     canvasRef.current = canvas;
 
@@ -100,6 +101,7 @@ export function TemplateEditorCanvas({
     if (!canvas) return;
 
     canvas.setDimensions({ width: canvasWidth, height: canvasHeight });
+    canvas.setZoom(1);
 
     const backgroundImage = backgroundImageRef.current;
     if (backgroundImage) {
@@ -123,8 +125,10 @@ export function TemplateEditorCanvas({
       image.set({
         left: 0,
         top: 0,
-        scaleX: canvasWidth / (image.width || baseWidth),
-        scaleY: canvasHeight / (image.height || baseHeight),
+        originX: "left",
+        originY: "top",
+        scaleX: canvasWidth / Math.max(image.width || baseWidth, 1),
+        scaleY: canvasHeight / Math.max(image.height || baseHeight, 1),
       });
       canvas.backgroundImage = image;
       canvas.requestRenderAll();

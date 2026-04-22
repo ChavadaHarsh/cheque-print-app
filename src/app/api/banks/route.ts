@@ -24,7 +24,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Bank name already exists." }, { status: 409 });
     }
 
-    const bank = await BankModel.create(payload);
+    const bank = await BankModel.create({
+      name: payload.name,
+      defaultUserName: payload.defaultUserName || "",
+      defaultUserPosition: payload.defaultUserPosition || "",
+    });
     return NextResponse.json({ bank }, { status: 201 });
   } catch (error) {
     if (error instanceof ZodError) {
